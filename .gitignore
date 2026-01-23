@@ -44,3 +44,4 @@ posthog-setup-report.md
 
 # Local Netlify folder
 .netlify
+.vscode
