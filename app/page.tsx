@@ -1,7 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import posthog from 'posthog-js';
+import { usePostHog } from 'posthog-js/react';
+
+// Helper to add PostHog IDs to wingit.dev links.
+// Prefers a global helper (if your PostHog init defines one), but falls back to
+// reading IDs directly from the PostHog client.
+function getWingItUrl(baseUrl: string, ph?: any): string {
+  if (typeof window === 'undefined') return baseUrl;
+
+  const globalHelper = (window as any).__addPostHogIdsToUrl;
+  if (typeof globalHelper === 'function') return globalHelper(baseUrl);
+
+  const distinctId = ph?.get_distinct_id?.();
+  const sessionId = ph?.get_session_id?.();
+
+  // If PostHog isn't ready yet, don't mutate the URL.
+  if (!distinctId && !sessionId) return baseUrl;
+
+  try {
+    const url = new URL(baseUrl);
+    if (distinctId) url.searchParams.set('ph_distinct_id', distinctId);
+    if (sessionId) url.searchParams.set('ph_session_id', sessionId);
+    return url.toString();
+  } catch {
+    // If baseUrl isn't a valid URL (shouldn't happen here), just return it.
+    return baseUrl;
+  }
+}
 
 type Card = {
   title: string;
@@ -80,130 +107,131 @@ export default function Page() {
           <Grid cards={projects} onClickName="project_click" />
         </Section>
 
-<Section
-  id="blog"
-  eyebrow="BLOG"
-  title="Updates, launches, and notes"
-  subtitle="Short posts on what we’re building, learning, and shipping."
->
-  <div className="grid gap-6 lg:grid-cols-3">
-    {/* Featured post */}
-    <FeaturedPost />
-
-    {/* List */}
-    <div className="lg:col-span-2">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-white/85">Latest</div>
-        <a
-          href="#blog-welcome"
-          onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_featured' })}
-          className="text-sm text-white/60 hover:text-white"
+        <Section
+          id="blog"
+          eyebrow="BLOG"
+          title="Updates, launches, and notes"
+          subtitle="Short posts on what we’re building, learning, and shipping."
         >
-          Read featured →
-        </a>
-      </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Featured post */}
+            <FeaturedPost />
 
-      <BlogGrid cards={blog} onClickName="blog_click" />
+            {/* List */}
+            <div className="lg:col-span-2">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-sm font-semibold text-white/85">Latest</div>
+                <a
+                  href="#blog-welcome"
+                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_featured' })}
+                  className="text-sm text-white/60 hover:text-white"
+                >
+                  Read featured →
+                </a>
+              </div>
 
-      <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/70 backdrop-blur-xl">
-        Want more updates? Follow along on{" "}
-        <a
-          className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
-          href="https://www.linkedin.com/in/themelroser/"
-          onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'linkedin_follow' })}
-        >
-          LinkedIn
-        </a>{" "}
-        or check out{" "}
-        <a
-          className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
-          href="#projects"
-          onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_projects' })}
-        >
-          recent work
-        </a>
-        .
-      </div>
-    </div>
-  </div>
-</Section>
+              <BlogGrid cards={blog} onClickName="blog_click" />
+
+              <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/70 backdrop-blur-xl">
+                Want more updates? Follow along on{' '}
+                <a
+                  className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
+                  href="https://www.linkedin.com/in/themelroser/"
+                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'linkedin_follow' })}
+                >
+                  LinkedIn
+                </a>{' '}
+                or check out{' '}
+                <a
+                  className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
+                  href="#projects"
+                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_projects' })}
+                >
+                  recent work
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+        </Section>
 
         <Section
-  id="about"
-  eyebrow="ABOUT"
-  title="About Devs.Miami"
-  subtitle="A growing network of software engineers and tech entrepreneurs living in and around Miami."
->
-  <div className="grid gap-6 md:grid-cols-2">
-    {/* Left: narrative + mission/values */}
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
-      <h3 className="text-lg font-semibold">Welcome</h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/75">
-        Welcome to Devs.Miami — a growing network of software engineers and tech entrepreneurs living in and around Miami.
-        Founded in 2022, Devs.Miami was born out of a passion for technology and a desire to connect businesses with the
-        best software engineering talent.
-      </p>
+          id="about"
+          eyebrow="ABOUT"
+          title="About Devs.Miami"
+          subtitle="A growing network of software engineers and tech entrepreneurs living in and around Miami."
+        >
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Left: narrative + mission/values */}
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold">Welcome</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/75">
+                Welcome to Devs.Miami — a growing network of software engineers and tech entrepreneurs living in and
+                around Miami. Founded in 2022, Devs.Miami was born out of a passion for technology and a desire to connect
+                businesses with the best software engineering talent.
+              </p>
 
-      <h3 className="mt-5 text-lg font-semibold">Our mission</h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/75">
-        Our mission is simple: to help businesses harness the power of technology to achieve their goals. We believe great
-        software can change the world — and we focus on building high-quality products with clear communication and
-        consistent delivery.
-      </p>
+              <h3 className="mt-5 text-lg font-semibold">Our mission</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/75">
+                Our mission is simple: to help businesses harness the power of technology to achieve their goals. We
+                believe great software can change the world — and we focus on building high-quality products with clear
+                communication and consistent delivery.
+              </p>
 
-      <h3 className="mt-5 text-lg font-semibold">Our values</h3>
-      <ul className="mt-2 space-y-2 text-sm text-white/75">
-        <li>
-          <span className="text-white/90">Excellence:</span> high standards in craftsmanship and service.
-        </li>
-        <li>
-          <span className="text-white/90">Innovation:</span> pushing boundaries, exploring new tools and ideas.
-        </li>
-        <li>
-          <span className="text-white/90">Collaboration:</span> teamwork with each other and our clients.
-        </li>
-        <li>
-          <span className="text-white/90">Integrity:</span> honesty, transparency, and follow-through.
-        </li>
-      </ul>
-    </div>
+              <h3 className="mt-5 text-lg font-semibold">Our values</h3>
+              <ul className="mt-2 space-y-2 text-sm text-white/75">
+                <li>
+                  <span className="text-white/90">Excellence:</span> high standards in craftsmanship and service.
+                </li>
+                <li>
+                  <span className="text-white/90">Innovation:</span> pushing boundaries, exploring new tools and ideas.
+                </li>
+                <li>
+                  <span className="text-white/90">Collaboration:</span> teamwork with each other and our clients.
+                </li>
+                <li>
+                  <span className="text-white/90">Integrity:</span> honesty, transparency, and follow-through.
+                </li>
+              </ul>
+            </div>
 
-    {/* Right: promise + team */}
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
-      <h3 className="text-lg font-semibold">Our promise</h3>
-      <ul className="mt-3 space-y-2 text-sm text-white/75">
-        <li>
-          <span className="text-white/90">Exceptional talent:</span> top-tier engineers across a wide range of stacks.
-        </li>
-        <li>
-          <span className="text-white/90">Tailored solutions:</span> pragmatic builds aligned to your business goals.
-        </li>
-        <li>
-          <span className="text-white/90">Commitment to excellence:</span> quality work, on time, with clear updates.
-        </li>
-      </ul>
+            {/* Right: promise + team */}
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold">Our promise</h3>
+              <ul className="mt-3 space-y-2 text-sm text-white/75">
+                <li>
+                  <span className="text-white/90">Exceptional talent:</span> top-tier engineers across a wide range of
+                  stacks.
+                </li>
+                <li>
+                  <span className="text-white/90">Tailored solutions:</span> pragmatic builds aligned to your business
+                  goals.
+                </li>
+                <li>
+                  <span className="text-white/90">Commitment to excellence:</span> quality work, on time, with clear
+                  updates.
+                </li>
+              </ul>
 
-      <h3 className="mt-6 text-lg font-semibold">Team</h3>
-      <div className="mt-3 space-y-3">
-        {team.map((t) => (
-          <a
-            key={t.name}
-            href={t.href}
-            onClick={() => posthog?.capture?.('team_link_click', { name: t.name })}
-            className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/20 hover:bg-white/[0.06]"
-          >
-            <div className="font-semibold">{t.name}</div>
-            <div className="mt-1 text-sm text-white/70">{t.note}</div>
-          </a>
-        ))}
-      </div>
+              <h3 className="mt-6 text-lg font-semibold">Team</h3>
+              <div className="mt-3 space-y-3">
+                {team.map((t) => (
+                  <a
+                    key={t.name}
+                    href={t.href}
+                    onClick={() => posthog?.capture?.('team_link_click', { name: t.name })}
+                    className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/20 hover:bg-white/[0.06]"
+                  >
+                    <div className="font-semibold">{t.name}</div>
+                    <div className="mt-1 text-sm text-white/70">{t.note}</div>
+                  </a>
+                ))}
+              </div>
 
-      <div className="mt-5 text-sm text-white/70">
-        Based in Brickell. Get in touch if you have a project.
-      </div>
-    </div>
-  </div>
-</Section>
+              <div className="mt-5 text-sm text-white/70">Based in Brickell. Get in touch if you have a project.</div>
+            </div>
+          </div>
+        </Section>
 
         <Section
           id="contact"
@@ -250,13 +278,26 @@ export default function Page() {
 }
 
 function Header() {
+  const posthogClient = usePostHog();
+  const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
+
+  useEffect(() => {
+    if (!posthogClient) return;
+
+    // PostHog can exist before session/distinct IDs are ready. Try immediately,
+    // then retry once shortly after.
+    setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
+    const t = setTimeout(() => {
+      setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
+    }, 150);
+
+    return () => clearTimeout(t);
+  }, [posthogClient]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/25 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <a
-          href="#top"
-          className="rounded-xl px-3 py-1.5 text-sm font-semibold tracking-wide text-white/90 hover:bg-white/10"
-        >
+        <a href="#top" className="rounded-xl px-3 py-1.5 text-sm font-semibold tracking-wide text-white/90 hover:bg-white/10">
           Devs.Miami
         </a>
 
@@ -268,7 +309,7 @@ function Header() {
         </nav>
 
         <a
-          href="https://wingit.dev"
+          href={wingitUrl}
           onClick={() => posthog?.capture?.('cta_click', { cta: 'header_wingit' })}
           className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
         >
@@ -280,32 +321,49 @@ function Header() {
 }
 
 function Hero() {
+  const posthogClient = usePostHog();
+  const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
+  const [appWingitUrl, setAppWingitUrl] = useState('https://app.wingit.dev');
+
+  useEffect(() => {
+    if (!posthogClient) return;
+
+    const update = () => {
+      setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
+      setAppWingitUrl(getWingItUrl('https://app.wingit.dev', posthogClient));
+    };
+
+    update();
+    const t = setTimeout(update, 150);
+
+    return () => clearTimeout(t);
+  }, [posthogClient]);
+
   return (
     <section id="top" className="pt-12 sm:pt-16">
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-xl sm:p-10">
         <div className="text-sm text-white/65">Local Tech Talent</div>
 
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-          Devs●Miami
-        </h1>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Devs●Miami</h1>
         <h2 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
           <span className="block text-white/30">Building What Comes Next</span>
         </h2>
+
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/75">
-          Devs.Miami is a network of software engineers and tech entrepreneurs in Miami.
-          We build cutting edge web applications with usefull AI features.
+          Devs.Miami is a network of software engineers and tech entrepreneurs in Miami. We build cutting edge web
+          applications with usefull AI features.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <a
-            href="https://wingit.dev"
+            href={wingitUrl}
             onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_wingit' })}
             className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/20"
           >
             Latest App
           </a>
           <a
-            href="https://app.wingit.dev"
+            href={appWingitUrl}
             onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_wingit_app' })}
             className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/25 hover:bg-white/15"
           >
@@ -371,10 +429,7 @@ function Grid({ cards, onClickName }: { cards: Card[]; onClickName: string }) {
 
           <div className="mt-4 flex flex-wrap gap-2">
             {c.tags.map((t) => (
-              <span
-                key={t}
-                className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65"
-              >
+              <span key={t} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">
                 {t}
               </span>
             ))}
@@ -394,11 +449,10 @@ function WelcomePost() {
       <div className="text-xs font-semibold tracking-[0.2em] text-white/55">2024-04-10 • rob</div>
       <h3 className="mt-2 text-xl font-semibold">Welcome to Devs.Miami</h3>
       <p className="mt-3">
-        Devs.Miami connects businesses with software engineering talent. There's high demand and a lot of noise—we focus on clear communication and quality work.
+        Devs.Miami connects businesses with software engineering talent. There's high demand and a lot of noise—we focus on
+        clear communication and quality work.
       </p>
-      <p className="mt-3">
-        Whether you're building an MVP, scaling a team, or working on something ambitious, we can help you ship it.
-      </p>
+      <p className="mt-3">Whether you're building an MVP, scaling a team, or working on something ambitious, we can help you ship it.</p>
     </div>
   );
 }
@@ -419,8 +473,8 @@ function FeaturedPost() {
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-white/75">
-        If you’re building an MVP, scaling a team, or trying to move faster without sacrificing quality, we can help you
-        plan, build, and launch.
+        If you’re building an MVP, scaling a team, or trying to move faster without sacrificing quality, we can help you plan,
+        build, and launch.
       </p>
 
       <div className="mt-5 flex flex-wrap gap-2">
@@ -475,10 +529,7 @@ function BlogGrid({ cards, onClickName }: { cards: Card[]; onClickName: string }
 
           <div className="mt-4 flex flex-wrap gap-2">
             {c.tags.map((t) => (
-              <span
-                key={t}
-                className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65"
-              >
+              <span key={t} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">
                 {t}
               </span>
             ))}
@@ -488,6 +539,7 @@ function BlogGrid({ cards, onClickName }: { cards: Card[]; onClickName: string }
     </div>
   );
 }
+
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <a
@@ -501,6 +553,20 @@ function NavLink({ href, label }: { href: string; label: string }) {
 }
 
 function Footer() {
+  const posthogClient = usePostHog();
+  const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
+
+  useEffect(() => {
+    if (!posthogClient) return;
+
+    setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
+    const t = setTimeout(() => {
+      setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
+    }, 150);
+
+    return () => clearTimeout(t);
+  }, [posthogClient]);
+
   return (
     <footer className="mt-14 border-t border-white/10 py-10 text-sm text-white/60">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -508,7 +574,7 @@ function Footer() {
         <div className="flex gap-4">
           <a
             className="hover:text-white"
-            href="https://wingit.dev"
+            href={wingitUrl}
             onClick={() => posthog?.capture?.('footer_link_click', { label: 'WingIt', href: 'https://wingit.dev' })}
           >
             WingIt
@@ -532,4 +598,3 @@ function Footer() {
     </footer>
   );
 }
-

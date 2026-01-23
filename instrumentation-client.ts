@@ -6,7 +6,27 @@ const uiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com";
 
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
+// Helper to add PostHog IDs to wingit.dev links for cross-domain tracking
+function addPostHogIdsToUrl(url: string): string {
+  if (!url.includes('wingit.dev')) return url;
+  const sessionId = posthog.get_session_id();
+  const distinctId = posthog.get_distinct_id();
+  if (!sessionId || !distinctId) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}ph_session_id=${sessionId}&ph_distinct_id=${distinctId}`;
+}
+
 if (typeof window !== "undefined" && key) {
+  // Bootstrap from cross-domain tracking params
+  const params = new URLSearchParams(window.location.search);
+  const bootstrap_session_id = params.get('ph_session_id');
+  const bootstrap_distinct_id = params.get('ph_distinct_id');
+
+  const bootstrap = bootstrap_session_id && bootstrap_distinct_id ? {
+    sessionID: bootstrap_session_id,
+    distinctID: bootstrap_distinct_id,
+  } : undefined;
+
   posthog.init(key, {
     api_host: apiHost,
     session_recording: {
@@ -19,8 +39,10 @@ if (typeof window !== "undefined" && key) {
     capture_pageview: true,
     capture_exceptions: true,
     debug: false,
-    person_profiles: 'always', // or 'always' to create profiles for anonymous users as well
+    person_profiles: 'always',
+    ...(bootstrap && { bootstrap }),
   });
 
-} else {
+  // Expose helper for cross-domain tracking
+  (window as any).__addPostHogIdsToUrl = addPostHogIdsToUrl;
 }
