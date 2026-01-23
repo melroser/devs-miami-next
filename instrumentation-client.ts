@@ -38,11 +38,13 @@ if (typeof window !== "undefined" && key) {
     defaults: "2025-11-30",
     capture_pageview: true,
     capture_exceptions: true,
-    debug: false,
+    debug: !isProd,
     person_profiles: 'always',
     ...(bootstrap && { bootstrap }),
   });
 
+  // make it accessible
+  (window as any).posthog = posthog;
   // Expose helper for cross-domain tracking
   (window as any).__addPostHogIdsToUrl = addPostHogIdsToUrl;
 }
