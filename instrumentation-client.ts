@@ -18,13 +18,9 @@ if (typeof window !== "undefined" && key) {
     defaults: "2025-11-30",
     capture_pageview: true,
     capture_exceptions: true,
-    debug: !isProd,
+    debug: false,
     person_profiles: 'always', // or 'always' to create profiles for anonymous users as well
   });
 
-  // make it accessible in DevTools
-  (window as any).posthog = posthog;
 } else {
-  // optional: helps catch missing key in prod
-  if (typeof window !== "undefined") console.warn("PostHog key missing: NEXT_PUBLIC_POSTHOG_KEY");
 }
