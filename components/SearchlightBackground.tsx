@@ -26,8 +26,8 @@ export function SearchlightBackground() {
       <style jsx global>{`
         :root {
           --dm-bg: #23272e;
-          --dm-blue: #6db6ff;
-          --dm-purple: #7c3aed;
+          --dm-blue: #67dfff;
+          --dm-hot: #ff8c5f;
         }
 
         html,
@@ -45,9 +45,9 @@ export function SearchlightBackground() {
           border-radius: 999px;
           z-index: 0;
 
-          background: linear-gradient(90deg, var(--dm-blue), var(--dm-purple));
-          opacity: 0.14;
-          filter: saturate(0.6) brightness(0.9);
+          background: linear-gradient(90deg, var(--dm-blue), var(--dm-hot));
+          opacity: 0.18;
+          filter: saturate(0.8) brightness(0.95);
           animation: dm-rotate 36s ease-in-out infinite;
 
           pointer-events: none;
@@ -87,4 +87,3 @@ export function SearchlightBackground() {
     </>
   );
 }
-

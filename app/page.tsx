@@ -1,22 +1,30 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
 import posthog from 'posthog-js';
 import { usePostHog } from 'posthog-js/react';
 
-// Helper to add PostHog IDs to wingit.dev links.
-// Prefers a global helper (if your PostHog init defines one), but falls back to
-// reading IDs directly from the PostHog client.
-function getWingItUrl(baseUrl: string, ph?: any): string {
+type WingitPosthogClient = {
+  get_distinct_id?: () => string | undefined;
+  get_session_id?: () => string | undefined;
+};
+
+declare global {
+  interface Window {
+    __addPostHogIdsToUrl?: (url: string) => string;
+  }
+}
+
+function getWingItUrl(baseUrl: string, ph?: WingitPosthogClient): string {
   if (typeof window === 'undefined') return baseUrl;
 
-  const globalHelper = (window as any).__addPostHogIdsToUrl;
+  const globalHelper = window.__addPostHogIdsToUrl;
   if (typeof globalHelper === 'function') return globalHelper(baseUrl);
 
   const distinctId = ph?.get_distinct_id?.();
   const sessionId = ph?.get_session_id?.();
 
-  // If PostHog isn't ready yet, don't mutate the URL.
   if (!distinctId && !sessionId) return baseUrl;
 
   try {
@@ -25,302 +33,147 @@ function getWingItUrl(baseUrl: string, ph?: any): string {
     if (sessionId) url.searchParams.set('ph_session_id', sessionId);
     return url.toString();
   } catch {
-    // If baseUrl isn't a valid URL (shouldn't happen here), just return it.
     return baseUrl;
   }
 }
 
-type Card = {
+type Project = {
   title: string;
   subtitle: string;
   href: string;
+  stage: string;
   tags: string[];
-  date?: string;
+  flagship?: boolean;
 };
 
-const projects: Card[] = [
+type Direction = {
+  name: string;
+  headline: string;
+  description: string;
+  bestFor: string;
+  mood: string[];
+};
+
+const projects: Project[] = [
   {
-    title: 'WingIt',
-    subtitle: 'Real-time presentation engine with auto-generated slides, transcript, and voice.',
+    title: 'Wingit',
+    subtitle: 'Flagship real-time presentation studio with AI-generated slides, transcript, and voice.',
     href: 'https://wingit.dev',
-    tags: ['Product', 'Realtime', 'AI'],
+    stage: 'Flagship Product',
+    tags: ['AI', 'Realtime', 'Presentations'],
+    flagship: true,
+  },
+  {
+    title: 'Vitamax Health',
+    subtitle: 'Health-focused prototype to help users take the right vitamins, at the right time.',
+    href: '#',
+    stage: 'Prototype',
+    tags: ['HealthTech', 'Mobile', 'Behavior Design'],
   },
   {
     title: 'Horcrux.inc',
-    subtitle: 'AI System and MCP Tool for Managing and Restoring Context',
-    href: 'https;//horcrux.inc',
-    tags: ['R&D', 'Agents', 'Systems'],
-  },
-  {
-    title: 'SDN OpenAPI',
-    subtitle: 'OFAC SDN list API tooling for compliance automation.',
-    href: 'https://sdn-openapi.netlify.app',
-    tags: ['API', 'Compliance', 'Infra'],
-  },
-  {
-    title: 'Devs.Miami',
-    subtitle: 'Projects, writing, and experiments.',
-    href: 'https://devs.miami',
-    tags: ['Hub', 'Portfolio'],
-  },
-];
-
-const blog: Card[] = [
-  {
-    title: 'Welcome to Devs.Miami',
-    subtitle: 'Miami Based Local Tech Talent.',
-    href: '#blog-welcome',
-    tags: ['Announcement', 'Miami'],
-    date: '2024-04-10',
-  },
-  {
-    title: 'Film.fyi',
-    subtitle: 'Endless Scroll Portfolios made for Photographers',
-    href: 'https://film.fyi',
-    tags: ['Project', 'Photography'],
-    date: '2023-11-24',
+    subtitle: 'AI context layer for saving, restoring, and sharing model context across workflows.',
+    href: 'https://horcrux.inc',
+    stage: 'R&D Product',
+    tags: ['Agents', 'Context', 'Developer Tools'],
   },
   {
     title: 'Drone Talents',
-    subtitle: 'An Online Marketplace for finding licensed Drone Pilots.',
+    subtitle: 'Marketplace platform connecting businesses with licensed drone operators.',
     href: 'https://devs.miami/projects/drone-talents/',
-    tags: ['Project', 'Marketplace'],
-    date: '2023-11-20',
+    stage: 'Marketplace',
+    tags: ['Marketplace', 'Operations', 'Gig Economy'],
+  },
+  {
+    title: 'Lern2CWD',
+    subtitle: 'Practice app for learning data structures and coding interview problem solving.',
+    href: '#',
+    stage: 'Education App',
+    tags: ['EdTech', 'LeetCode', 'Practice'],
+  },
+  {
+    title: 'SDN OpenAPI',
+    subtitle: 'Open API tooling around OFAC SDN datasets for compliance-centric products.',
+    href: 'https://sdn-openapi.netlify.app/',
+    stage: 'Developer API',
+    tags: ['Compliance', 'API', 'Infrastructure'],
   },
 ];
 
-const team = [
-  { name: 'Rob', note: 'Founder, Cheif of Engineering.  melroser.com', href: 'https://melroser.com' },
-  { name: 'Dolce', note: 'CTO, architecture and technical lead. debugdynasty.com', href: 'https://debugdynasty.com' },
-  { name: 'Gabe', note: 'Operations and strategy. gabe.miami', href: 'https://gabe.miami' },
+const directions: Direction[] = [
+  {
+    name: 'Direction 01',
+    headline: 'Kinetic Product Theatre',
+    description:
+      'A high-drama, animation-led site where Wingit is the center of gravity and every scroll beat feels like a product launch.',
+    bestFor: 'Investor demos and high-attention brand storytelling',
+    mood: ['Immersive', 'Loud', 'Cinematic'],
+  },
+  {
+    name: 'Direction 02',
+    headline: 'Precision Innovation Lab',
+    description:
+      'Sharper structure, high contrast, and technical credibility. Designed to show disciplined execution across multiple bets.',
+    bestFor: 'Enterprise trust and technical buyer conversion',
+    mood: ['Confident', 'Structured', 'High Signal'],
+  },
+  {
+    name: 'Direction 03',
+    headline: 'Future Builder Collective',
+    description:
+      'Editorial + experimental blend focused on team, momentum, and portfolio. Wingit remains featured, ecosystem stays visible.',
+    bestFor: 'Recruiting, partnerships, and community building',
+    mood: ['Human', 'Experimental', 'Modern'],
+  },
 ];
 
-export default function Page() {
-  return (
-    <div className="min-h-screen text-white">
-      <Header />
+const founders = [
+  {
+    name: 'Rob Melroser',
+    role: 'CTO / CEO / VP Engineering',
+    note: 'Lead technical architect and primary product execution across the portfolio.',
+    href: 'https://melroser.com',
+  },
+  {
+    name: 'Gabriel Robayo',
+    role: 'Acting CFO',
+    note: 'Financial strategy, planning, and business model discipline for sustainable growth.',
+    href: '#',
+  },
+  {
+    name: 'Sebastien Dolce',
+    role: 'COO Candidate / Operations + Technical Strategy',
+    note: 'Execution support across WordPress operations and technical product brainstorming.',
+    href: '#',
+  },
+  {
+    name: 'Tatiana Riquelme',
+    role: 'Media + Medical Domain Advisor',
+    note: 'Creative media direction plus nurse practitioner expertise for medical software initiatives.',
+    href: '#',
+  },
+];
 
-      <main className="mx-auto max-w-6xl px-5 pb-20">
-        <Hero />
+const reveal = {
+  hidden: { opacity: 0, y: 28 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.21, 1, 0.35, 1] },
+  },
+};
 
-        <Section id="projects" eyebrow="PROJECTS" title="Recent work">
-          <Grid cards={projects} onClickName="project_click" />
-        </Section>
+const stagger = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
 
-        <Section
-          id="blog"
-          eyebrow="BLOG"
-          title="Updates, launches, and notes"
-          subtitle="Short posts on what we’re building, learning, and shipping."
-        >
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Featured post */}
-            <FeaturedPost />
-
-            {/* List */}
-            <div className="lg:col-span-2">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-white/85">Latest</div>
-                <a
-                  href="#blog-welcome"
-                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_featured' })}
-                  className="text-sm text-white/60 hover:text-white"
-                >
-                  Read featured →
-                </a>
-              </div>
-
-              <BlogGrid cards={blog} onClickName="blog_click" />
-
-              <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/70 backdrop-blur-xl">
-                Want more updates? Follow along on{' '}
-                <a
-                  className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
-                  href="https://www.linkedin.com/in/themelroser/"
-                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'linkedin_follow' })}
-                >
-                  LinkedIn
-                </a>{' '}
-                or check out{' '}
-                <a
-                  className="text-white/85 hover:text-white underline decoration-white/20 hover:decoration-white/50 underline-offset-4"
-                  href="#projects"
-                  onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'view_projects' })}
-                >
-                  recent work
-                </a>
-                .
-              </div>
-            </div>
-          </div>
-        </Section>
-
-        <Section
-          id="about"
-          eyebrow="ABOUT"
-          title="About Devs.Miami"
-          subtitle="A growing network of software engineers and tech entrepreneurs living in and around Miami."
-        >
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Left: narrative + mission/values */}
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
-              <h3 className="text-lg font-semibold">Welcome</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/75">
-                Welcome to Devs.Miami — a growing network of software engineers and tech entrepreneurs living in and
-                around Miami. Founded in 2022, Devs.Miami was born out of a passion for technology and a desire to connect
-                businesses with the best software engineering talent.
-              </p>
-
-              <h3 className="mt-5 text-lg font-semibold">Our mission</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/75">
-                Our mission is simple: to help businesses harness the power of technology to achieve their goals. We
-                believe great software can change the world — and we focus on building high-quality products with clear
-                communication and consistent delivery.
-              </p>
-
-              <h3 className="mt-5 text-lg font-semibold">Our values</h3>
-              <ul className="mt-2 space-y-2 text-sm text-white/75">
-                <li>
-                  <span className="text-white/90">Excellence:</span> high standards in craftsmanship and service.
-                </li>
-                <li>
-                  <span className="text-white/90">Innovation:</span> pushing boundaries, exploring new tools and ideas.
-                </li>
-                <li>
-                  <span className="text-white/90">Collaboration:</span> teamwork with each other and our clients.
-                </li>
-                <li>
-                  <span className="text-white/90">Integrity:</span> honesty, transparency, and follow-through.
-                </li>
-              </ul>
-            </div>
-
-            {/* Right: promise + team */}
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
-              <h3 className="text-lg font-semibold">Our promise</h3>
-              <ul className="mt-3 space-y-2 text-sm text-white/75">
-                <li>
-                  <span className="text-white/90">Exceptional talent:</span> top-tier engineers across a wide range of
-                  stacks.
-                </li>
-                <li>
-                  <span className="text-white/90">Tailored solutions:</span> pragmatic builds aligned to your business
-                  goals.
-                </li>
-                <li>
-                  <span className="text-white/90">Commitment to excellence:</span> quality work, on time, with clear
-                  updates.
-                </li>
-              </ul>
-
-              <h3 className="mt-6 text-lg font-semibold">Team</h3>
-              <div className="mt-3 space-y-3">
-                {team.map((t) => (
-                  <a
-                    key={t.name}
-                    href={t.href}
-                    onClick={() => posthog?.capture?.('team_link_click', { name: t.name })}
-                    className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/20 hover:bg-white/[0.06]"
-                  >
-                    <div className="font-semibold">{t.name}</div>
-                    <div className="mt-1 text-sm text-white/70">{t.note}</div>
-                  </a>
-                ))}
-              </div>
-
-              <div className="mt-5 text-sm text-white/70">Based in Brickell. Get in touch if you have a project.</div>
-            </div>
-          </div>
-        </Section>
-
-        <Section
-          id="contact"
-          eyebrow="CONTACT"
-          title="Get in touch"
-          subtitle="General inquiries: info@devs.miami. Direct contact: rob@devs.miami."
-        >
-          <div className="flex flex-wrap gap-3">
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
-              href="mailto:rob@devs.miami"
-              onClick={() => posthog?.capture?.('cta_click', { cta: 'email_rob' })}
-            >
-              Email Rob
-            </a>
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
-              href="mailto:info@devs.miami"
-              onClick={() => posthog?.capture?.('cta_click', { cta: 'email_info' })}
-            >
-              Email Info
-            </a>
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
-              href="https://www.linkedin.com/in/themelroser/"
-              onClick={() => posthog?.capture?.('cta_click', { cta: 'linkedin' })}
-            >
-              LinkedIn
-            </a>
-            <a
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
-              href="https://github.com/melroser"
-              onClick={() => posthog?.capture?.('cta_click', { cta: 'github' })}
-            >
-              GitHub
-            </a>
-          </div>
-        </Section>
-
-        <Footer />
-      </main>
-    </div>
-  );
-}
-
-function Header() {
-  const posthogClient = usePostHog();
-  const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
-
-  useEffect(() => {
-    if (!posthogClient) return;
-
-    // PostHog can exist before session/distinct IDs are ready. Try immediately,
-    // then retry once shortly after.
-    setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
-    const t = setTimeout(() => {
-      setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
-    }, 150);
-
-    return () => clearTimeout(t);
-  }, [posthogClient]);
-
-  return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/25 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <a href="#top" className="rounded-xl px-3 py-1.5 text-sm font-semibold tracking-wide text-white/90 hover:bg-white/10">
-          Devs.Miami
-        </a>
-
-        <nav className="hidden gap-1 text-sm text-white/70 sm:flex">
-          <NavLink href="#projects" label="Projects" />
-          <NavLink href="#blog" label="Blog" />
-          <NavLink href="#about" label="About" />
-          <NavLink href="#contact" label="Contact" />
-        </nav>
-
-        <a
-          href={wingitUrl}
-          onClick={() => posthog?.capture?.('cta_click', { cta: 'header_wingit' })}
-          className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:border-white/25 hover:bg-white/15"
-        >
-          WingIt →
-        </a>
-      </div>
-    </header>
-  );
-}
-
-function Hero() {
+function useWingitLinks() {
   const posthogClient = usePostHog();
   const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
   const [appWingitUrl, setAppWingitUrl] = useState('https://app.wingit.dev');
@@ -334,208 +187,338 @@ function Hero() {
     };
 
     update();
-    const t = setTimeout(update, 150);
+    const t = setTimeout(update, 200);
 
     return () => clearTimeout(t);
   }, [posthogClient]);
 
+  return { wingitUrl, appWingitUrl };
+}
+
+export default function Page() {
+  const { wingitUrl, appWingitUrl } = useWingitLinks();
+  const nonFlagship = useMemo(() => projects.filter((p) => !p.flagship), []);
+  const tickerItems = useMemo(
+    () => [
+      'Wingit • Real-time presentation engine',
+      'Vitamax • Personalized vitamin support prototype',
+      'Horcrux.inc • AI context portability',
+      'Drone Talents • Drone operator marketplace',
+      'Lern2CWD • Coding practice app',
+      'SDN OpenAPI • Compliance data API tooling',
+    ],
+    []
+  );
+
   return (
-    <section id="top" className="pt-12 sm:pt-16">
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-xl sm:p-10">
-        <div className="text-sm text-white/65">Local Tech Talent</div>
+    <div className="dm-shell min-h-screen text-[#e6f0f2]">
+      <div className="dm-vignette" aria-hidden />
 
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Devs●Miami</h1>
-        <h2 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-          <span className="block text-white/30">Building What Comes Next</span>
-        </h2>
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#031017]/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
+          <a
+            href="#top"
+            className="text-sm font-semibold uppercase tracking-[0.24em] text-white/85 transition hover:text-[#74ffe2]"
+          >
+            Devs Miami LLC
+          </a>
 
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/75">
-          Devs.Miami is a network of software engineers and tech entrepreneurs in Miami. We build cutting edge web
-          applications with usefull AI features.
-        </p>
+          <nav className="hidden items-center gap-6 text-xs uppercase tracking-[0.2em] text-white/60 md:flex">
+            <NavLink href="#flagship" label="Wingit" />
+            <NavLink href="#directions" label="Directions" />
+            <NavLink href="#products" label="Products" />
+            <NavLink href="#team" label="Team" />
+            <NavLink href="#contact" label="Contact" />
+          </nav>
 
-        <div className="mt-6 flex flex-wrap gap-3">
           <a
             href={wingitUrl}
-            onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_wingit' })}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/20"
+            onClick={() => posthog?.capture?.('cta_click', { cta: 'header_wingit' })}
+            className="rounded-full border border-[#74ffe2]/55 bg-[#74ffe2]/12 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#dcfffa] transition hover:-translate-y-0.5 hover:bg-[#74ffe2]/20"
           >
-            Latest App
-          </a>
-          <a
-            href={appWingitUrl}
-            onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_wingit_app' })}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/25 hover:bg-white/15"
-          >
-            WingIt.dev
-          </a>
-          <a
-            href="#projects"
-            onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_projects' })}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/25 hover:bg-white/15"
-          >
-            View All
+            Launch Wingit
           </a>
         </div>
-      </div>
-    </section>
-  );
-}
+      </header>
 
-function Section({
-  id,
-  eyebrow,
-  title,
-  subtitle,
-  children,
-}: {
-  id: string;
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="pt-14">
-      <div className="mb-6">
-        <div className="text-xs font-semibold tracking-[0.2em] text-white/55">{eyebrow}</div>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight">{title}</h2>
-        {subtitle ? <p className="mt-2 max-w-2xl text-sm text-white/70">{subtitle}</p> : null}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Grid({ cards, onClickName }: { cards: Card[]; onClickName: string }) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {cards.map((c) => (
-        <a
-          key={c.title}
-          href={c.href}
-          onClick={() => posthog?.capture?.(onClickName, { title: c.title, href: c.href })}
-          className="group rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.06]"
+      <main id="top" className="relative mx-auto max-w-7xl px-5 pb-24 pt-12 sm:px-8 sm:pt-16">
+        <motion.section
+          id="flagship"
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[radial-gradient(circle_at_10%_20%,rgba(88,215,255,0.24),transparent_42%),radial-gradient(circle_at_80%_10%,rgba(255,122,77,0.2),transparent_35%),rgba(2,11,18,0.85)] p-7 sm:p-12"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-lg font-semibold">{c.title}</div>
-              {c.date ? <div className="mt-1 text-xs text-white/50">{c.date}</div> : null}
-            </div>
-            <div className="text-white/55 transition group-hover:text-white">→</div>
+          <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/65 sm:right-8 sm:top-8">
+            Flagship Priority
           </div>
 
-          <div className="mt-2 text-sm leading-relaxed text-white/70">{c.subtitle}</div>
+          <motion.p variants={reveal} className="text-xs uppercase tracking-[0.3em] text-[#8aeedb]">
+            Devs Miami // build fast, ship for real
+          </motion.p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {c.tags.map((t) => (
-              <span key={t} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">
-                {t}
-              </span>
+          <motion.h1
+            variants={reveal}
+            className="mt-5 max-w-4xl text-5xl font-semibold leading-[0.95] text-white sm:text-7xl"
+          >
+            Wingit is the hero product.
+            <span className="mt-2 block text-[#88f7ff]">Everything else proves range.</span>
+          </motion.h1>
+
+          <motion.p variants={reveal} className="mt-6 max-w-2xl text-sm leading-relaxed text-[#d4e7e9] sm:text-base">
+            Devs Miami LLC is an execution-first studio collective. We prototype, harden, and ship ambitious software.
+            Wingit leads the story. The rest of our ecosystem shows that we can build across AI, health, education,
+            marketplaces, and compliance.
+          </motion.p>
+
+          <motion.div variants={reveal} className="mt-8 flex flex-wrap gap-3">
+            <a
+              href={wingitUrl}
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_wingit' })}
+              className="rounded-full border border-[#8effe4]/70 bg-[#8effe4]/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#edfffb] transition hover:-translate-y-0.5 hover:bg-[#8effe4]/30"
+            >
+              Enter Wingit
+            </a>
+            <a
+              href={appWingitUrl}
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_app_wingit' })}
+              className="rounded-full border border-white/25 bg-white/8 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white/90 transition hover:-translate-y-0.5 hover:bg-white/15"
+            >
+              Open App
+            </a>
+            <a
+              href="#directions"
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'hero_view_directions' })}
+              className="rounded-full border border-white/20 bg-black/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white/90 transition hover:-translate-y-0.5 hover:bg-white/12"
+            >
+              See Redesign Concepts
+            </a>
+          </motion.div>
+
+          <motion.div
+            variants={reveal}
+            className="mt-9 grid gap-4 rounded-2xl border border-white/12 bg-black/35 p-4 text-sm text-white/80 sm:grid-cols-3"
+          >
+            <Metric label="Core Story" value="Wingit First" />
+            <Metric label="Team Model" value="4 Co-Founders" />
+            <Metric label="Build Thesis" value="Scrappy + Shippable" />
+          </motion.div>
+        </motion.section>
+
+        <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+          <div className="dm-ticker">
+            {[...tickerItems, ...tickerItems].map((item, index) => (
+              <span key={`${item}-${index}`}>{item}</span>
             ))}
           </div>
-        </a>
-      ))}
-    </div>
-  );
-}
+        </section>
 
-function WelcomePost() {
-  return (
-    <div
-      id="blog-welcome"
-      className="mt-6 rounded-3xl border border-white/10 bg-black/20 p-6 text-sm leading-relaxed text-white/75 backdrop-blur-xl"
-    >
-      <div className="text-xs font-semibold tracking-[0.2em] text-white/55">2024-04-10 • rob</div>
-      <h3 className="mt-2 text-xl font-semibold">Welcome to Devs.Miami</h3>
-      <p className="mt-3">
-        Devs.Miami connects businesses with software engineering talent. There's high demand and a lot of noise—we focus on
-        clear communication and quality work.
-      </p>
-      <p className="mt-3">Whether you're building an MVP, scaling a team, or working on something ambitious, we can help you ship it.</p>
-    </div>
-  );
-}
-
-function FeaturedPost() {
-  return (
-    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl lg:sticky lg:top-20 lg:self-start">
-      <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold tracking-[0.2em] text-white/55">FEATURED</div>
-        <div className="text-xs text-white/50">2024-04-10 • rob</div>
-      </div>
-
-      <h3 className="mt-3 text-2xl font-semibold tracking-tight">Welcome to Devs.Miami</h3>
-
-      <p className="mt-3 text-sm leading-relaxed text-white/75">
-        Devs.Miami is a Miami-based network of builders — software engineers, founders, and operators — focused on shipping
-        high-quality products with clear communication and consistent delivery.
-      </p>
-
-      <p className="mt-3 text-sm leading-relaxed text-white/75">
-        If you’re building an MVP, scaling a team, or trying to move faster without sacrificing quality, we can help you plan,
-        build, and launch.
-      </p>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">Miami</span>
-        <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">Consulting</span>
-        <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">Shipping</span>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <a
-          href="#blog-welcome"
-          onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'read_featured' })}
-          className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/20"
+        <motion.section
+          id="directions"
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.25 }}
+          className="mt-20"
         >
-          Read post →
-        </a>
-        <a
-          href="#contact"
-          onClick={() => posthog?.capture?.('blog_cta_click', { cta: 'contact_from_blog' })}
-          className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/25 hover:bg-white/15"
-        >
-          Work with us
-        </a>
-      </div>
-    </article>
-  );
-}
+          <motion.div variants={reveal} className="mb-7">
+            <p className="text-xs uppercase tracking-[0.26em] text-[#8aeedb]">Creative Directions</p>
+            <h2 className="mt-2 text-3xl font-semibold text-white sm:text-5xl">Three redesign paths for devs.miami</h2>
+            <p className="mt-3 max-w-3xl text-sm text-white/70 sm:text-base">
+              This page is now an inspiration mockup. Pick one direction, then we can turn that direction into a production
+              system with custom interactions and page-level storytelling.
+            </p>
+          </motion.div>
 
-function BlogGrid({ cards, onClickName }: { cards: Card[]; onClickName: string }) {
-  return (
-    <div className="grid gap-4">
-      {cards.map((c) => (
-        <a
-          key={c.title}
-          href={c.href}
-          onClick={() => posthog?.capture?.(onClickName, { title: c.title, href: c.href })}
-          className="group rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.06]"
+          <motion.div variants={stagger} className="grid gap-5 lg:grid-cols-3">
+            {directions.map((direction, index) => (
+              <motion.article
+                key={direction.name}
+                variants={reveal}
+                whileHover={{ y: -8, scale: 1.01 }}
+                className="group relative overflow-hidden rounded-3xl border border-white/14 bg-[linear-gradient(160deg,rgba(255,255,255,0.09),rgba(0,0,0,0.08)_55%)] p-6"
+              >
+                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#65ffe8]/20 blur-2xl transition group-hover:bg-[#ff8f55]/30" />
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">{direction.name}</p>
+                <h3 className="mt-3 text-2xl font-semibold text-white">{direction.headline}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/75">{direction.description}</p>
+                <p className="mt-5 text-xs uppercase tracking-[0.2em] text-[#99f7e5]">Best for</p>
+                <p className="mt-1 text-sm text-white/85">{direction.bestFor}</p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {direction.mood.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-white/75"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => posthog?.capture?.('direction_interest_click', { direction: direction.headline, index })}
+                  className="mt-6 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/85 transition hover:bg-white/12"
+                >
+                  Choose This Direction
+                </button>
+              </motion.article>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
+          id="products"
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.25 }}
+          className="mt-20"
         >
-          <div className="flex items-start justify-between gap-4">
+          <motion.div variants={reveal} className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <div className="text-lg font-semibold">{c.title}</div>
-                {c.date ? <div className="text-xs text-white/50">{c.date}</div> : null}
+              <p className="text-xs uppercase tracking-[0.26em] text-[#8aeedb]">Product Universe</p>
+              <h2 className="mt-2 text-3xl font-semibold text-white sm:text-5xl">Flagship plus a full build portfolio</h2>
+            </div>
+            <a
+              href={wingitUrl}
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'products_wingit' })}
+              className="inline-flex rounded-full border border-[#7cfde3]/40 bg-[#7cfde3]/12 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#dcfff8] transition hover:bg-[#7cfde3]/24"
+            >
+              Wingit Live
+            </a>
+          </motion.div>
+
+          <motion.article variants={reveal} className="rounded-3xl border border-[#7cfde3]/35 bg-[#071f24]/65 p-7">
+            <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr] lg:items-center">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#9df8e9]">Featured Flagship</p>
+                <h3 className="mt-2 text-4xl font-semibold text-white sm:text-5xl">Wingit</h3>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#d0ebed] sm:text-base">
+                  Wingit transforms rough prompts into presentable narratives in real time. It captures transcript + audio,
+                  accelerates delivery, and helps teams communicate clearly without sacrificing speed.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {['Real-time generation', 'Voice + transcript', 'Presentation quality', 'Ship-ready velocity'].map((pill) => (
+                    <span
+                      key={pill}
+                      className="rounded-full border border-[#88ffe6]/45 bg-[#88ffe6]/12 px-3 py-1 text-xs uppercase tracking-[0.14em] text-[#dbfff8]"
+                    >
+                      {pill}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="mt-1 text-sm leading-relaxed text-white/70">{c.subtitle}</div>
+              <div className="dm-orbital-card rounded-2xl border border-white/15 bg-black/35 p-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/65">Flagship Signals</p>
+                <ul className="mt-4 space-y-3 text-sm text-white/85">
+                  <li>Built for live demos and async storytelling</li>
+                  <li>Data instrumentation ready for growth loops</li>
+                  <li>Acts as brand proof of execution quality</li>
+                </ul>
+              </div>
             </div>
+          </motion.article>
 
-            <div className="mt-1 flex items-center gap-2 text-sm text-white/55 transition group-hover:text-white">
-              <span className="hidden sm:inline">Read</span> →
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {c.tags.map((t) => (
-              <span key={t} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/65">
-                {t}
-              </span>
+          <motion.div variants={stagger} className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {nonFlagship.map((project) => (
+              <motion.a
+                key={project.title}
+                variants={reveal}
+                whileHover={{ y: -6, scale: 1.01 }}
+                href={project.href}
+                onClick={() => posthog?.capture?.('project_click', { title: project.title, href: project.href })}
+                className="rounded-2xl border border-white/12 bg-[linear-gradient(155deg,rgba(120,234,255,0.1),rgba(0,0,0,0.12)_45%)] p-5 transition"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/55">{project.stage}</p>
+                    <h3 className="mt-2 text-2xl font-semibold text-white">{project.title}</h3>
+                  </div>
+                  <span className="text-white/55">↗</span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-white/75">{project.subtitle}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {project.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/18 bg-black/35 px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] text-white/75"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </motion.a>
             ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
+          id="team"
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.25 }}
+          className="mt-20"
+        >
+          <motion.div variants={reveal} className="mb-7">
+            <p className="text-xs uppercase tracking-[0.26em] text-[#8aeedb]">Founding Team</p>
+            <h2 className="mt-2 text-3xl font-semibold text-white sm:text-5xl">A multi-domain, high-velocity crew</h2>
+          </motion.div>
+
+          <motion.div variants={stagger} className="grid gap-4 md:grid-cols-2">
+            {founders.map((member) => (
+              <motion.a
+                key={member.name}
+                variants={reveal}
+                href={member.href}
+                onClick={() => posthog?.capture?.('team_link_click', { name: member.name, href: member.href })}
+                className="rounded-2xl border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(0,0,0,0.2))] p-6 transition hover:border-[#7bfde2]/45"
+              >
+                <p className="text-xs uppercase tracking-[0.2em] text-[#91f7e4]">{member.role}</p>
+                <h3 className="mt-2 text-2xl font-semibold text-white">{member.name}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/75">{member.note}</p>
+              </motion.a>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
+          id="contact"
+          variants={reveal}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.4 }}
+          className="mt-20 rounded-3xl border border-white/15 bg-[radial-gradient(circle_at_0%_0%,rgba(116,255,226,0.25),transparent_40%),radial-gradient(circle_at_100%_0%,rgba(255,135,88,0.24),transparent_32%),rgba(5,12,17,0.9)] p-8 sm:p-10"
+        >
+          <p className="text-xs uppercase tracking-[0.26em] text-[#96f9e7]">Build With Devs Miami</p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-semibold text-white sm:text-5xl">
+            If you need a team that can prototype fast and ship production-grade systems, let’s talk.
+          </h2>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="mailto:rob@devs.miami"
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'email_rob' })}
+              className="rounded-full border border-[#8effe4]/70 bg-[#8effe4]/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#f0fffc] transition hover:-translate-y-0.5 hover:bg-[#8effe4]/32"
+            >
+              rob@devs.miami
+            </a>
+            <a
+              href="mailto:info@devs.miami"
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'email_info' })}
+              className="rounded-full border border-white/25 bg-white/8 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white/90 transition hover:-translate-y-0.5 hover:bg-white/14"
+            >
+              info@devs.miami
+            </a>
+            <a
+              href="https://www.linkedin.com/in/themelroser/"
+              onClick={() => posthog?.capture?.('cta_click', { cta: 'linkedin' })}
+              className="rounded-full border border-white/25 bg-black/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white/90 transition hover:-translate-y-0.5 hover:bg-white/12"
+            >
+              LinkedIn
+            </a>
           </div>
-        </a>
-      ))}
+        </motion.section>
+      </main>
     </div>
   );
 }
@@ -545,56 +528,18 @@ function NavLink({ href, label }: { href: string; label: string }) {
     <a
       href={href}
       onClick={() => posthog?.capture?.('nav_link_click', { label, href })}
-      className="rounded-full px-3 py-1.5 transition hover:bg-white/10 hover:text-white"
+      className="transition hover:text-white"
     >
       {label}
     </a>
   );
 }
 
-function Footer() {
-  const posthogClient = usePostHog();
-  const [wingitUrl, setWingitUrl] = useState('https://wingit.dev');
-
-  useEffect(() => {
-    if (!posthogClient) return;
-
-    setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
-    const t = setTimeout(() => {
-      setWingitUrl(getWingItUrl('https://wingit.dev', posthogClient));
-    }, 150);
-
-    return () => clearTimeout(t);
-  }, [posthogClient]);
-
+function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <footer className="mt-14 border-t border-white/10 py-10 text-sm text-white/60">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>© {new Date().getFullYear()} Devs.Miami</div>
-        <div className="flex gap-4">
-          <a
-            className="hover:text-white"
-            href={wingitUrl}
-            onClick={() => posthog?.capture?.('footer_link_click', { label: 'WingIt', href: 'https://wingit.dev' })}
-          >
-            WingIt
-          </a>
-          <a
-            className="hover:text-white"
-            href="https://melroser.com"
-            onClick={() => posthog?.capture?.('footer_link_click', { label: 'melroser.com', href: 'https://melroser.com' })}
-          >
-            melroser.com
-          </a>
-          <a
-            className="hover:text-white"
-            href="mailto:rob@devs.miami"
-            onClick={() => posthog?.capture?.('footer_link_click', { label: 'rob@devs.miami', href: 'mailto:rob@devs.miami' })}
-          >
-            rob@devs.miami
-          </a>
-        </div>
-      </div>
-    </footer>
+    <div className="rounded-xl border border-white/12 bg-white/5 px-4 py-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-white/55">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    </div>
   );
 }

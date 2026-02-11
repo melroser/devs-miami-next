@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #041019;
+  --foreground: #e9f4f5;
+  --dm-accent: #74ffe2;
+  --dm-hot: #ff8555;
+  --dm-soft: #78d9ff;
 }
 
 @theme inline {
@@ -12,15 +15,115 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "Avenir Next", "Segoe UI", sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+.dm-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.dm-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 20% 12%, rgba(120, 217, 255, 0.16), transparent 36%),
+    radial-gradient(circle at 84% 0%, rgba(255, 129, 80, 0.13), transparent 33%),
+    linear-gradient(180deg, #040e16, #061723 48%, #041019);
+}
+
+.dm-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  opacity: 0.13;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.11) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+}
+
+.dm-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 30%, transparent 20%, rgba(1, 4, 8, 0.72) 85%);
+}
+
+.dm-ticker {
+  display: flex;
+  width: max-content;
+  gap: 2.2rem;
+  padding: 0.7rem 0;
+  white-space: nowrap;
+  animation: dm-slide 28s linear infinite;
+}
+
+.dm-ticker span {
+  padding-inline: 0.8rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: rgba(233, 244, 245, 0.74);
+}
+
+.dm-orbital-card {
+  animation: dm-float 8s ease-in-out infinite;
+}
+
+@keyframes dm-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-52%);
+  }
+}
+
+@keyframes dm-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@media (max-width: 768px) {
+  .dm-ticker {
+    gap: 1.4rem;
+    animation-duration: 23s;
+  }
+
+  .dm-ticker span {
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-ticker,
+  .dm-orbital-card {
+    animation: none;
+  }
 }
