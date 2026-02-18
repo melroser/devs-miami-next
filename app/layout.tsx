@@ -5,6 +5,27 @@ import './globals.css';
 import { Providers } from './providers';
 import { SearchlightBackground } from '../components/SearchlightBackground';
 
+const themeInitScript = `
+(() => {
+  try {
+    const overrideKey = 'devs-miami-theme-override';
+    const legacyKey = 'devs-miami-theme';
+    const isValid = (value) => value === 'light' || value === 'dark';
+
+    const storedOverride = localStorage.getItem(overrideKey);
+    const legacyValue = localStorage.getItem(legacyKey);
+    const persisted = isValid(storedOverride) ? storedOverride : isValid(legacyValue) ? legacyValue : null;
+
+    const resolvedTheme = persisted ?? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+
+    if (!storedOverride && isValid(legacyValue)) {
+      localStorage.setItem(overrideKey, legacyValue);
+    }
+  } catch {}
+})();
+`;
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -47,7 +68,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full`}>
         <SearchlightBackground />
         <div className="relative z-10">

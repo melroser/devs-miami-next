@@ -10,7 +10,7 @@ export function SearchlightBackground() {
     const onMove = (e: PointerEvent) => {
       blob.animate(
         { left: `${e.clientX}px`, top: `${e.clientY}px` },
-        { duration: 2600, fill: 'forwards', easing: 'ease-out' }
+        { duration: 6200, fill: 'forwards', easing: 'cubic-bezier(0.2, 0.72, 0.2, 1)' }
       );
     };
 
@@ -24,31 +24,24 @@ export function SearchlightBackground() {
       <div id="dm-blur" aria-hidden />
 
       <style jsx global>{`
-        :root {
-          --dm-bg: #23272e;
-          --dm-blue: #67dfff;
-          --dm-hot: #ff8c5f;
-        }
-
         html,
         body {
-          background: var(--dm-bg);
+          background: var(--dm-search-bg, var(--background));
         }
 
         #dm-blob {
           position: fixed;
-          left: 50%;
-          top: 50%;
+          left: 14%;
+          top: 74%;
           translate: -50% -50%;
-          width: min(720px, 98vw);
+          width: min(560px, 72vw);
           aspect-ratio: 1;
           border-radius: 999px;
-          z-index: 0;
+          z-index: -6;
 
-          background: linear-gradient(90deg, var(--dm-blue), var(--dm-hot));
-          opacity: 0.18;
-          filter: saturate(0.8) brightness(0.95);
-          animation: dm-rotate 36s ease-in-out infinite;
+          background: linear-gradient(90deg, var(--dm-search-a, var(--dm-accent)), var(--dm-search-b, var(--dm-soft)));
+          opacity: 0.055;
+          filter: saturate(0.72) brightness(0.9) blur(2px);
 
           pointer-events: none;
           will-change: left, top, transform;
@@ -57,32 +50,21 @@ export function SearchlightBackground() {
         #dm-blur {
           position: fixed;
           inset: 0;
-          z-index: 1;
+          z-index: -5;
 
-          backdrop-filter: blur(580px);
-          -webkit-backdrop-filter: blur(580px);
+          backdrop-filter: blur(220px);
+          -webkit-backdrop-filter: blur(220px);
 
           background: radial-gradient(
             circle at 50% 50%,
             rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 0.46) 58%,
-            rgba(0, 0, 0, 0.9) 100%
+            rgba(0, 0, 0, 0.26) 58%,
+            rgba(0, 0, 0, 0.58) 100%
           );
 
           pointer-events: none;
         }
 
-        @keyframes dm-rotate {
-          from {
-            rotate: 0deg;
-          }
-          50% {
-            transform: scale(1, 1.55);
-          }
-          to {
-            rotate: 360deg;
-          }
-        }
       `}</style>
     </>
   );

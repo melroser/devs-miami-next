@@ -1,8 +1,7 @@
 // instrumentation-client.ts  
 import posthog from "posthog-js";
 
-const isProd = process.env.NODE_ENV === "production";  
-const apiHost = isProd ? "/ph" : "https://us.i.posthog.com";  
+const apiHost = "/ph";  
 const uiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com";  
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
@@ -45,7 +44,7 @@ export function initPostHog() {
     defaults: "2025-11-30",  
     capture_pageview: true,  
     capture_exceptions: true,  
-    debug: !isProd,  
+    debug: false,  
     person_profiles: 'always',  
     ...(bootstrap && { bootstrap }),  
   });
