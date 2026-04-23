@@ -47,3 +47,6 @@ posthog-setup-report.md
 .vscode
 
 .DS_Store
+
+Archived.zip
+*.zip
