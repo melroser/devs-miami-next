@@ -29,9 +29,9 @@ export default function Cover() {
           <h2 className="max-w-4xl text-[2.6rem] font-black uppercase leading-[0.92] sm:text-[4rem] lg:text-[5.8rem]">
             Useful software
             <br />
-            for real people
+            and AI Tools
             <br />
-            under real pressure
+            for real people
           </h2>
 
           <div className="mt-10 grid items-stretch gap-6 lg:grid-cols-[1.2fr_0.8fr]">
