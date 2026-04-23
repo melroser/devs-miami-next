@@ -1,82 +1,43 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
-
-import { Providers } from './providers';
-import { SearchlightBackground } from '../components/SearchlightBackground';
-
-const themeInitScript = `
-(() => {
-  try {
-    const overrideKey = 'devs-miami-theme-override';
-    const legacyKey = 'devs-miami-theme';
-    const isValid = (value) => value === 'light' || value === 'dark';
-
-    const storedOverride = localStorage.getItem(overrideKey);
-    const legacyValue = localStorage.getItem(legacyKey);
-    const persisted = isValid(storedOverride) ? storedOverride : isValid(legacyValue) ? legacyValue : null;
-
-    const resolvedTheme = persisted ?? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-    document.documentElement.setAttribute('data-theme', resolvedTheme);
-
-    if (!storedOverride && isValid(legacyValue)) {
-      localStorage.setItem(overrideKey, legacyValue);
-    }
-  } catch {}
-})();
-`;
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+import type { Metadata } from "next";
+import "./globals.css";
+import { Providers } from "./providers";
+import { Ticker } from "@/components/Ticker";
+import { VolumeStack } from "@/components/VolumeStack";
 
 export const metadata: Metadata = {
-  title: 'Devs.Miami',
+  title: "Devs.Miami - Volume Stack",
   description:
-    'Shipping real software in Miami. WingIt (real-time presentations) plus tools, experiments, and proof-of-work.',
-  metadataBase: new URL('https://devs.miami'),
-  icons: {
-    icon: '/favicon.ico',
-  },
+    "Shipping real software in Miami. Wingit plus tools, experiments, and proof-of-work in a collectible Miami software journal.",
+  metadataBase: new URL("https://devs.miami"),
   openGraph: {
-    title: 'Devs.Miami',
-    description:
-      'Shipping real software in Miami. WingIt plus tools, experiments, and proof-of-work.',
-    url: 'https://devs.miami',
-    siteName: 'Devs.Miami',
-    images: ['/opengraph-image.png'],
-    type: 'website',
+    title: "Devs.Miami",
+    description: "Shipping real software in Miami. Wingit plus tools, experiments, and proof-of-work.",
+    url: "https://devs.miami",
+    siteName: "Devs.Miami",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
+    type: "website"
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Devs.Miami',
-    description:
-      'Shipping real software in Miami. WingIt plus tools, experiments, and proof-of-work.',
-    images: ['/twitter-image.png'],
+    card: "summary_large_image",
+    title: "Devs.Miami",
+    images: ["/twitter-image"]
   },
+  icons: { icon: "/img/logo/logo_white.svg" }
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full`}>
-        <SearchlightBackground />
-        <div className="relative z-10">
-          <Providers>{children}</Providers>
-        </div>
+    <html lang="en" className="h-full">
+      <body className="min-h-full bg-ink font-sans antialiased">
+        <Providers>
+          <div className="min-h-screen bg-ink lg:grid lg:grid-cols-[330px_minmax(0,1fr)]">
+            <VolumeStack />
+            <main className="relative z-10 min-w-0 bg-bone text-ink shadow-[-24px_0_60px_rgba(0,0,0,0.34)]">
+              <Ticker />
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );
