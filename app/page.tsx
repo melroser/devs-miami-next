@@ -20,7 +20,7 @@ export default function Cover() {
         numeral="I"
         kicker="Cover Issue"
         title="Devs. Miami"
-        subtitle="A Miami-based network of builders, software engineers, founders, and operators focused on shipping high-quality products with clear communication and consistent delivery."
+        subtitle="A Miami-Based Software Company comprised of builders, software engineers, founders, and operators focused on shipping high-quality products with clear communication and consistent delivery."
       />
 
       <section className="grid lg:grid-cols-[1.55fr_0.95fr]">
