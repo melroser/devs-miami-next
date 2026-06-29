@@ -135,6 +135,14 @@ export default function Cover() {
             >
               Read Volume II
             </Link>
+            <a
+              href="https://lern2cwd.netlify.app"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-ink/20 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-ink2 transition hover:-translate-y-0.5 hover:bg-white/60"
+            >
+              Try Lern2CWD
+            </a>
           </div>
         </div>
 
