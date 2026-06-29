@@ -9,8 +9,9 @@ const issueLinks = [
   { n: "II", title: "Wingit Flagship", href: "/wingit" },
   { n: "III", title: "Roadmap + Economics", href: "/roadmap" },
   { n: "IV", title: "Product Portfolio", href: "/products" },
-  { n: "V", title: "The Masthead", href: "/team" },
-  { n: "VI", title: "Contact the Desk", href: "/contact" }
+  { n: "V", title: "Who We Are", href: "/team" },
+  { n: "VI", title: "Contact the Desk", href: "/contact" },
+  { n: "VII", title: "Fintech + Compliance", href: "/finance" }
 ];
 
 export default function Cover() {
@@ -65,6 +66,51 @@ export default function Cover() {
                   <p className="text-xl font-black uppercase leading-tight sm:text-2xl">{fact.value}</p>
                 </article>
               ))}
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-lg border border-black/15 bg-white/80 p-6 shadow-[0_18px_40px_rgba(10,10,10,0.08)] sm:p-7">
+            <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-black/45 sm:text-xs">Featured fintech case study</p>
+            <h3 className="max-w-3xl text-3xl font-black uppercase leading-none sm:text-4xl">
+              Financial Intelligence and Compliance API Demo
+            </h3>
+            <p className="mt-5 max-w-3xl text-sm leading-relaxed text-black/72 sm:text-base">
+              A two-part fintech engineering showcase: a TypeScript and Netlify serverless API exposing OFAC SDN sanctions data through OpenAPI, Swagger UI, and ReDoc, paired with a Python FastAPI prototype that uses Subjective Logic to explain uncertainty in sanctions screening.
+            </p>
+            <p className="mt-4 max-w-3xl text-xs font-semibold uppercase leading-relaxed tracking-[0.12em] text-black/55">
+              Demonstrates: TypeScript, Python, FastAPI, OpenAPI, Swagger, API documentation, fuzzy search, compliance data, financial intelligence, and AI-assisted analysis.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href="https://sdn-openapi.netlify.app"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md bg-ink2 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-bone transition hover:-translate-y-0.5"
+              >
+                View live API
+              </a>
+              <a
+                href="https://github.com/melroser/ed-209"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-ink2 transition hover:-translate-y-0.5 hover:bg-white"
+              >
+                View risk engine
+              </a>
+              <Link
+                href="/finance"
+                className="rounded-md bg-heat px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-ink2 transition hover:-translate-y-0.5"
+              >
+                Read case study
+              </Link>
+              <a
+                href="https://github.com/melroser/sdn-openapi"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-ink2 transition hover:-translate-y-0.5 hover:bg-white"
+              >
+                View GitHub
+              </a>
             </div>
           </div>
 

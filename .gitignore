@@ -46,6 +46,9 @@ posthog-setup-report.md
 .netlify
 .vscode
 
+# Browser automation scratch files
+.playwright-cli/
+
 .DS_Store
 
 Archived.zip

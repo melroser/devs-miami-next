@@ -1,5 +1,6 @@
 export const tickerItems = [
   "Wingit - Real-time presentation engine",
+  "Sanctions Intelligence Demo - OpenAPI, OFAC data, and uncertainty-aware screening",
   "SDN OpenAPI - Compliance data API tooling",
   "Horcrux - Context portability for AI workflows",
   "Loudness Lab - Acoustic analysis + utilities",
@@ -26,6 +27,19 @@ export const products = [
       "Built for live demos and async storytelling",
       "Instrumentation-ready for growth loops",
       "Proof of low-latency execution quality"
+    ]
+  },
+  {
+    title: "Sanctions Intelligence Demo",
+    category: "Fintech Case Study",
+    href: "/finance",
+    blurb:
+      "A two-part fintech engineering showcase combining a TypeScript OpenAPI sanctions data API with a Python FastAPI uncertainty engine for OFAC screening workflows.",
+    tags: ["Fintech", "OpenAPI", "Python", "TypeScript", "Compliance"],
+    features: [
+      "Live OFAC SDN API layer with Swagger and ReDoc",
+      "Subjective Logic risk engine for uncertainty-aware screening",
+      "Recruiter-friendly case study tying API design to financial intelligence"
     ]
   },
   {
@@ -59,7 +73,7 @@ export const products = [
   {
     title: "Lern2CWD",
     category: "Education App",
-    href: "#",
+    href: "https://lern2cwd.netlify.app",
     blurb: "Practice app for learning data structures and solving coding interview problems, with spaced repetition and interactive challenges.",
     tags: ["EdTech", "Practice"]
   },
