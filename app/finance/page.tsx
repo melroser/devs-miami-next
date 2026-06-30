@@ -4,9 +4,9 @@ import { MagazineShell } from "@/components/MagazineShell";
 import { Masthead } from "@/components/Masthead";
 
 export const metadata: Metadata = {
-  title: "Sanctions Intelligence Demo - Devs.Miami",
+  title: "Finance / Compliance Case Study - Devs.Miami",
   description:
-    "A fintech engineering case study combining TypeScript OpenAPI sanctions data, Python FastAPI, OFAC SDN data, Subjective Logic, and AI-assisted risk analysis."
+    "A fintech engineering case study showing how public OFAC sanctions data can become a documented developer API, then a Python decision-support prototype for risk screening."
 };
 
 const links = [
@@ -48,31 +48,43 @@ export default function FinanceCaseStudy() {
       <Masthead
         numeral="VII"
         kicker="Sanctions Intelligence"
-        title="Finance Intel"
-        subtitle="A fintech engineering showcase combining OpenAPI, TypeScript, Python, OFAC data, fuzzy search, uncertainty modeling, and AI-assisted risk analysis."
+        title="Finance Case"
+        subtitle="A fintech engineering case study about API design, data normalization, compliance workflows, and explainable decision support."
       />
 
       <section className="grid border-b border-black/15 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="border-b border-black/15 px-6 py-10 sm:px-8 lg:border-b-0 lg:border-r lg:px-12 lg:py-12">
           <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-black/45">Case Study</p>
           <h2 className="max-w-4xl text-[2.6rem] font-black uppercase leading-[0.92] sm:text-[4.5rem] lg:text-[6.2rem]">
-            Sanctions
+            Finance /
             <br />
-            Intelligence
+            Compliance
             <br />
-            Demo
+            Case Study
           </h2>
           <p className="mt-8 max-w-3xl text-lg leading-relaxed text-black/75">
-            This project demonstrates how raw compliance data can become a developer-friendly API, then become an evidence-based risk engine. The first layer exposes U.S. Treasury OFAC SDN data through a documented OpenAPI interface. The second layer applies uncertainty-aware screening so borderline matches do not become blind yes/no decisions.
+            This is a case study showing how I turned public U.S. Treasury sanctions data into a documented API, then used{" "}
+            <a
+              href="https://github.com/melroser/ed-209"
+              target="_blank"
+              rel="noreferrer"
+              className="font-black text-heat underline decoration-black/25 underline-offset-4 transition hover:text-black"
+            >
+              Subjective Logic
+            </a>{" "}
+            in a web application for making decisions and evaluating risk.
           </p>
           <p className="mt-5 max-w-3xl text-base leading-relaxed text-black/65">
-            The larger concept is a financial intelligence workflow that can combine sanctions data, country risk, news sentiment, and AI analysis to support market research.
+            A fintech engineering case study showing how public OFAC sanctions data can become a documented developer API, then a Python decision-support prototype for risk screening.
+          </p>
+          <p className="mt-5 max-w-3xl text-base leading-relaxed text-black/65">
+            This project has two layers: SDN OpenAPI is the TypeScript serverless API layer, and ED 209 is the Python FastAPI decision layer.
           </p>
         </div>
 
         <aside className="bg-ink2 px-6 py-10 text-bone sm:px-8 lg:px-10 lg:py-12">
           <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-white/45">Primary Artifacts</p>
-          <h3 className="text-3xl font-black uppercase leading-none sm:text-4xl">One funnel, two builds</h3>
+          <h3 className="text-3xl font-black uppercase leading-none sm:text-4xl">Two layers, one case study</h3>
           <div className="mt-8 grid gap-3">
             {links.map((item) => (
               <a
@@ -87,7 +99,7 @@ export default function FinanceCaseStudy() {
             ))}
           </div>
           <p className="mt-8 rounded-lg border border-white/15 bg-white/8 p-5 text-sm leading-relaxed text-white/70">
-            This is not a trading model. It demonstrates how compliance data, uncertainty modeling, and AI-assisted country analysis could feed a financial intelligence workflow.
+            This is not a trading model or financial advice. It is a software engineering case study about API design, data normalization, compliance workflows, and explainable decision support.
           </p>
         </aside>
       </section>
@@ -108,7 +120,7 @@ export default function FinanceCaseStudy() {
               <p className="mb-3 text-[10px] uppercase tracking-[0.24em] text-black/45">Part 1 / API Layer</p>
               <h3 className="text-2xl font-black uppercase">SDN OpenAPI</h3>
               <p className="mt-4 text-sm leading-relaxed text-black/70">
-                A TypeScript serverless API for querying OFAC SDN data through OpenAPI, Swagger UI, ReDoc, fuzzy search, metadata, entity lookup, and scheduled refresh.
+                The TypeScript serverless API layer. It exposes U.S. Treasury OFAC SDN sanctions data through OpenAPI, Swagger UI, ReDoc, fuzzy search, entity lookup, metadata endpoints, and refresh-ready data handling.
               </p>
             </article>
 
@@ -116,7 +128,7 @@ export default function FinanceCaseStudy() {
               <p className="mb-3 text-[10px] uppercase tracking-[0.24em] text-black/45">Part 2 / Risk Engine</p>
               <h3 className="text-2xl font-black uppercase">ED 209</h3>
               <p className="mt-4 text-sm leading-relaxed text-black/70">
-                A Python FastAPI prototype that uses Subjective Logic opinions to explain uncertainty in sanctions screening and recommend actions like GATHER_MORE.
+                The Python FastAPI decision layer. It consumes sanctions search results and turns them into explainable screening decisions, surfacing evidence, uncertainty, missing information, and a recommended next action: clear, block, escalate, or gather more information.
               </p>
             </article>
           </div>
@@ -130,7 +142,7 @@ export default function FinanceCaseStudy() {
             <h2 className="text-3xl font-black uppercase sm:text-4xl">From source data to decision support</h2>
           </div>
           <p className="max-w-lg text-sm leading-relaxed text-black/65">
-            The point is not just querying OFAC. The point is showing a path from public compliance data to documented APIs to uncertainty-aware reasoning.
+            The point is not just querying OFAC. The point is showing how public compliance data can move from normalized source data, to a developer API, to decision support that explains uncertainty instead of hiding it.
           </p>
         </div>
 
@@ -150,6 +162,9 @@ export default function FinanceCaseStudy() {
           <h2 className="text-4xl font-black uppercase leading-none sm:text-5xl">A binary flag is often too crude.</h2>
           <p className="mt-6 text-base leading-relaxed text-black/75">
             A useful screening system should explain what evidence exists, what evidence is missing, and whether the next action is clear, escalate, block, or gather more information.
+          </p>
+          <p className="mt-5 text-base leading-relaxed text-black/70">
+            This page frames the work as a software engineering artifact: API design, data normalization, compliance workflows, and explainable decision support.
           </p>
           <blockquote className="mt-8 rounded-lg border-l-4 border-heat bg-white/70 p-6 text-lg font-black uppercase leading-tight text-black/75">
             I can turn messy public financial and compliance data into documented APIs, then build reasoning systems on top of it.
@@ -184,7 +199,7 @@ export default function FinanceCaseStudy() {
         <div className="px-6 py-10 sm:px-8 lg:px-12 lg:py-12">
           <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-black/45">Recruiter Summary</p>
           <p className="text-lg leading-relaxed text-black/75">
-            I built a small financial intelligence portfolio project that combines a TypeScript OpenAPI sanctions data API with a Python FastAPI uncertainty engine. The API exposes OFAC SDN data through Swagger/ReDoc with fuzzy search and entity lookup. The Python layer explores Subjective Logic for compliance screening, so borderline matches can return actionable decisions like gather more evidence instead of a crude binary flag.
+            I built a finance and compliance case study showing how public OFAC sanctions data can become a documented TypeScript API, then a Python FastAPI decision-support prototype. SDN OpenAPI handles the developer API layer. ED 209 consumes sanctions search results and uses Subjective Logic to surface evidence, uncertainty, missing information, and next actions instead of returning a brittle match/no-match result.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
